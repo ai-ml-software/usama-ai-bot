@@ -1,49 +1,35 @@
-# Telegram Media Director — Pollinations + Cloudflare Worker
+# Hermes + Pollinations deployment kit
 
-An independent deployable integration: `/image` and `/video` in Telegram; Pollinations-powered generation; asynchronous Cloudflare Queue; private Pollinations code agent (`agent.ts`) that prepares prompts. These are **two separate services**: Pollinations managed agents return text; the Telegram Worker calls media endpoints and uploads actual image/video files.
+## Important architecture distinction
+Hermes Agent (the local agent runtime) can be configured to use Pollinations as a model provider. That **does not** deploy NousResearch/Hermes-4-14B weights from Hugging Face to Pollinations. A hosted HF Hermes model requires a separately provisioned inference endpoint and a compatible provider/model-registration flow.
 
-## Requirements
-- A Telegram bot token from BotFather and a Pollinations API key with adequate credits and model access.
-- A Cloudflare account with Workers and Queues enabled. Queues and generation can incur charges.
-- For the optional managed **code agent**: public GitHub repo with `agent.ts` at its root, linked Pollinations/GitHub account, and `account:keys` permission. Public agent visibility requires community publisher access; default private is recommended.
+## Option A — Connect an installed Hermes Agent directly to Pollinations (recommended)
+1. Install Hermes Agent using its official installer for your operating system: https://hermes-agent.nousresearch.com/
+2. In a trusted terminal on the machine running Hermes, execute:
 
-## Deploy the Telegram Worker
-1. Install Node 20+ and Wrangler (`npm install -g wrangler`), then `wrangler login`.
-2. Create a queue: `wrangler queues create telegram-media-generation`.
-3. Store secrets (never commit or paste values into chats):
-   - `wrangler secret put TELEGRAM_BOT_TOKEN`
-   - `wrangler secret put TELEGRAM_WEBHOOK_SECRET` (random 32+ alphanumeric, hyphen or underscore chars)
-   - `wrangler secret put POLLINATIONS_API_KEY`
-4. Optionally restrict users: `wrangler secret put ALLOWED_USER_IDS` (comma-separated Telegram numeric user IDs).
-5. Verify the selected image and video models support `/image` and `/video` in the **live** Pollinations catalog. Update `IMAGE_MODEL`, `VIDEO_MODEL` and `VIDEO_DURATION` in `wrangler.toml` if necessary.
-6. `wrangler deploy` and note your HTTPS Workers URL.
-7. Register the webhook locally with your own bot token and webhook secret (never paste credentials into third-party sites):
-   ```sh
-   curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
-     -d "url=https://YOUR-WORKER.workers.dev/telegram/webhook" \
-     -d "secret_token=${TELEGRAM_WEBHOOK_SECRET}" \
-     -d 'allowed_updates=["message"]'
-   ```
-8. Test `/start`, `/image red desert sunset`, `/video waves under moonlight`; inspect `wrangler tail` and queue delivery health. Check `https://YOUR-WORKER.workers.dev/health` (does not reveal secrets).
-
-## Optional Pollinations managed code agent
-Create a **new public GitHub repo** with the root `agent.ts` and this repository README; replace the placeholder repository URL in `code-agent.json`. Then in your authenticated terminal:
-```sh
-npx @pollinations/cli agents create --config code-agent.json
+```bash
+npx @pollinations/cli@latest harness hermes on
+polli harness hermes status
+polli mcp install hermes --all
 ```
-Or create it using the Pollinations dashboard at https://enter.pollinations.ai/my-models . Enter the public repository URL, keep **agent visibility private** and require privacy/secrets/sexual/violence/shield features. The account needs GitHub linkage and `account:keys` to manage agents. After creation, set the GitHub repository variable `POLLINATIONS_SYNC_URL` to the exact `https://gen.pollinations.ai/account/agents/AGENT_ID/sync` value. The included GitHub Action syncs changes made to `agent.ts` on main.
 
-## Troubleshooting matrix
-- **401/403 from Pollinations**: API key, model permission, or depleted balance. Do not disclose the key.
-- **404/model unavailable**: Retrieve current model catalog and update model names. Video support must be checked separately from image support.
-- **402/429**: Insufficient funds/quota or rate limit. Apply backoff, avoid continuous retry loops.
-- **Telegram upload fails**: Confirm returned content type is image/video, file below Bot API upload limits, and bot can message the chat.
-- **Webhook 403**: Verify `X-Telegram-Bot-Api-Secret-Token` matches the secret registered with Telegram.
-- **Webhook replies but no media**: Check Cloudflare Queue consumer, Pollinations credentials/model, Worker logs, and outbound Telegram API errors.
+The first command signs in interactively when needed, configures `$HERMES_HOME/config.yaml`, stores a dedicated key in `$HERMES_HOME/.env`, and installs the Polli skill. The model can be changed with `hermes model`; available IDs must be selected from the **live Pollinations** catalog. Test both image and video tool availability; these operations may require account balance/permissions.
 
-## Operational notes
-- Telegram webhook returns quickly; a Queue consumer generates media after acknowledgement, avoiding webhook timeout. Queue redelivery can cause duplicate sends after a successful upload but before acknowledgement; add a durable idempotency store before high-scale launch.
-- Do not expose API keys in source code, worker responses, logs, GitHub commits, or Telegram chat.
-- Image content is uploaded using sendPhoto; some generators produce formats or dimensions Telegram rejects. Convert media or use sendDocument if supported in your environment.
-- Video generation can be costly or slower than photos. Model availability and quota depend on the provider.
-- `agent.ts` does not connect to your Telegram bot by itself. The Cloudflare Worker handles actual Telegram integration.
+## Option B — Publish this managed code agent (a text/tool-using agent, not the Hermes weights)
+1. Create a NEW PUBLIC GitHub repository exclusively for the agent, e.g. `hermes-pollinations-agent`, and put `agent.ts` at its root.
+2. Replace `YOUR_GITHUB_USERNAME/YOUR_PUBLIC_AGENT_REPO` in `code-agent.json` with the actual repository.
+3. Visit https://enter.pollinations.ai/my-models, connect the intended Pollinations account, and add a **Code agent**, pasting the repository URL. Keep **private** visibility until tested.
+4. Alternatively, when authorized in the Pollinations CLI, run `npx @pollinations/cli@latest agents create --config code-agent.json`.
+5. Check the returned agent ID/name and test a response through `/v1/responses` with an account key. Check available media tools independently; managed code agents are text-only as an outer API.
+6. To auto-sync, set the GitHub repository variable `POLLINATIONS_SYNC_URL` to `https://gen.pollinations.ai/account/agents/ACTUAL_AGENT_ID/sync` (replace the ID). Do not insert an API key in the repository.
+
+## Hugging Face reference
+Recommended optional HF model: https://huggingface.co/NousResearch/Hermes-4-14B
+Do not claim it is being used unless an authorized, deployed inference endpoint has been created and tested for this specific model. Hugging Face model repository visibility does not imply hosted inference availability.
+
+## Security and deployment verification
+- Never store API keys or Telegram tokens in GitHub files or chats.
+- Keep Pollinations agent visibility private by default; public visibility requires community publisher privileges.
+- Test an actual response, image generation and video generation; verify video MP4 upload to Telegram separately.
+- The code-agent repository and agent identity are fixed at creation; use a dedicated public repo.
+- For Telegram bot operation, a separate Telegram webhook/worker deployment is necessary; simply publishing this agent will not connect Telegram.

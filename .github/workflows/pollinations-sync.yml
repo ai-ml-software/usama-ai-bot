@@ -1,0 +1,15 @@
+name: Sync Pollinations Agent
+on:
+  push:
+    branches: [main]
+    paths: [agent.ts]
+  workflow_dispatch:
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync deployed code agent
+        if: ${{ vars.POLLINATIONS_SYNC_URL != '' }}
+        env:
+          SYNC_URL: ${{ vars.POLLINATIONS_SYNC_URL }}
+        run: curl --fail --retry 2 --retry-delay 30 --request POST "$SYNC_URL"

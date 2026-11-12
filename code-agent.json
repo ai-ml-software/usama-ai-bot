@@ -1,6 +1,7 @@
 {
   "type": "code_agent",
   "repository": "https://github.com/YOUR_GITHUB_USERNAME/YOUR_PUBLIC_AGENT_REPO",
+  "description": "",
   "visibility": "private",
   "requiredSafetyFeatures": ["privacy", "secrets", "sexual", "violence", "shield"]
 }
