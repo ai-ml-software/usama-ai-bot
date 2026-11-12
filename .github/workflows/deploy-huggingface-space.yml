@@ -1,0 +1,64 @@
+name: Deploy Usama AI Bot to Hugging Face Gradio Space
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: usama-ai-bot-hf-space
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Python syntax
+        run: python -m compileall -q app.py bot scripts
+      - name: Check Hugging Face deployment credentials
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo '::error::Missing GitHub Actions secret HF_TOKEN (must grant write access to Space).'
+            exit 1
+          fi
+      - name: Deploy complete Gradio application
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p hf-staging
+          cp app.py requirements.txt hf-staging/
+          cp -a bot hf-staging/
+          if [ -d scripts ]; then cp -a scripts hf-staging/; fi
+          # Space metadata must not be replaced with GitHub's standard README.
+          cat > hf-staging/README.md <<'EOF'
+          ---
+          title: Usama AI Bot
+          emoji: 🤖
+          colorFrom: blue
+          colorTo: purple
+          sdk: gradio
+          app_file: app.py
+          python_version: '3.12'
+          ---
+
+          # Usama AI Telegram Bot
+          Gradio status UI; the Telegram poller runs as a subprocess during Space uptime.
+          EOF
+          git clone --quiet https://huggingface.co/spaces/kosama685/usama-ai-bot hf-space
+          rsync -a --delete --exclude='.git/' hf-staging/ hf-space/
+          cd hf-space
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'Space already matches GitHub deployment content.'
+            exit 0
+          fi
+          git commit -m "Deploy from GitHub ${GITHUB_SHA}"
+          BASIC_AUTH=$(printf 'user:%s' "$HF_TOKEN" | base64 -w0)
+          git -c "http.extraHeader=Authorization: Basic $BASIC_AUTH" push origin HEAD:main
+          echo 'Changes pushed to HF Space; check Space build logs and test Telegram /start.'
