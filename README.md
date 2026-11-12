@@ -1,35 +1,11 @@
-# Hermes + Pollinations deployment kit
+# Usama Telegram Free Bot
 
-## Important architecture distinction
-Hermes Agent (the local agent runtime) can be configured to use Pollinations as a model provider. That **does not** deploy NousResearch/Hermes-4-14B weights from Hugging Face to Pollinations. A hosted HF Hermes model requires a separately provisioned inference endpoint and a compatible provider/model-registration flow.
+An isolated Cloudflare Worker that defaults to zero-spend mode. Free `/health` and `/models` endpoints work without any key. Telegram replies work after the owner configures `TELEGRAM_BOT_TOKEN` and `TELEGRAM_WEBHOOK_SECRET` in Cloudflare Worker secrets and registers `/telegram/webhook` with Telegram. Media commands intentionally never execute paid/credit-consuming API requests until a genuinely free provider is separately validated.
 
-## Option A — Connect an installed Hermes Agent directly to Pollinations (recommended)
-1. Install Hermes Agent using its official installer for your operating system: https://hermes-agent.nousresearch.com/
-2. In a trusted terminal on the machine running Hermes, execute:
+## Security
 
-```bash
-npx @pollinations/cli@latest harness hermes on
-polli harness hermes status
-polli mcp install hermes --all
-```
+Never commit bot tokens or API keys. Set the secrets in Cloudflare dashboard. Optionally set `ALLOWED_USER_IDS` to comma-separated numeric Telegram user IDs. Register the webhook using the Bot API `setWebhook` method with the worker HTTPS URL and the same secret token. Do not include credentials in the webhook URL itself.
 
-The first command signs in interactively when needed, configures `$HERMES_HOME/config.yaml`, stores a dedicated key in `$HERMES_HOME/.env`, and installs the Polli skill. The model can be changed with `hermes model`; available IDs must be selected from the **live Pollinations** catalog. Test both image and video tool availability; these operations may require account balance/permissions.
+## Cost policy
 
-## Option B — Publish this managed code agent (a text/tool-using agent, not the Hermes weights)
-1. Create a NEW PUBLIC GitHub repository exclusively for the agent, e.g. `hermes-pollinations-agent`, and put `agent.ts` at its root.
-2. Replace `YOUR_GITHUB_USERNAME/YOUR_PUBLIC_AGENT_REPO` in `code-agent.json` with the actual repository.
-3. Visit https://enter.pollinations.ai/my-models, connect the intended Pollinations account, and add a **Code agent**, pasting the repository URL. Keep **private** visibility until tested.
-4. Alternatively, when authorized in the Pollinations CLI, run `npx @pollinations/cli@latest agents create --config code-agent.json`.
-5. Check the returned agent ID/name and test a response through `/v1/responses` with an account key. Check available media tools independently; managed code agents are text-only as an outer API.
-6. To auto-sync, set the GitHub repository variable `POLLINATIONS_SYNC_URL` to `https://gen.pollinations.ai/account/agents/ACTUAL_AGENT_ID/sync` (replace the ID). Do not insert an API key in the repository.
-
-## Hugging Face reference
-Recommended optional HF model: https://huggingface.co/NousResearch/Hermes-4-14B
-Do not claim it is being used unless an authorized, deployed inference endpoint has been created and tested for this specific model. Hugging Face model repository visibility does not imply hosted inference availability.
-
-## Security and deployment verification
-- Never store API keys or Telegram tokens in GitHub files or chats.
-- Keep Pollinations agent visibility private by default; public visibility requires community publisher privileges.
-- Test an actual response, image generation and video generation; verify video MP4 upload to Telegram separately.
-- The code-agent repository and agent identity are fixed at creation; use a dedicated public repo.
-- For Telegram bot operation, a separate Telegram webhook/worker deployment is necessary; simply publishing this agent will not connect Telegram.
+No calls to paid models; no billing credentials; no upgrades or auto-purchases. Cloudflare usage stays within the account's own plan allowance. Pollinations currently requires an `sk_` secret for generation, and the existence of public models does not guarantee free inference.
