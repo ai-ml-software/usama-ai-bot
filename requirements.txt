@@ -1,7 +1,9 @@
-python-telegram-bot[job-queue]>=21.0
-openai>=1.40.0
-python-dotenv>=1.0.0
-aiohttp>=3.9.0
-httpx>=0.27.0
-requests==2.31.0
+python-telegram-bot
+openai
+python-dotenv
+aiohttp
+httpx
+requests
 gradio
+uvicorn
+fastapi
