@@ -26,6 +26,9 @@ def setup_logging():
     # Telegram embeds the secret in its API URL: never log httpx request URLs.
     logging.getLogger('httpx').setLevel(logging.WARNING)
     logging.getLogger('httpcore').setLevel(logging.WARNING)
+    # Telegram embeds the secret in its API URL: never log httpx request URLs.
+    logging.getLogger('httpx').setLevel(logging.WARNING)
+    logging.getLogger('httpcore').setLevel(logging.WARNING)
 
 
 def main():
