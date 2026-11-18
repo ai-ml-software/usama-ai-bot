@@ -23,6 +23,9 @@ def setup_logging():
     log_file = os.path.join(Config.LOG_DIR, "bot.log")
     handlers.append(RotatingFileHandler(log_file, maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8"))
     logging.basicConfig(level=logging.INFO, format=fmt, handlers=handlers)
+    # Telegram HTTP URLs embed bot tokens. Never log these URLs.
+    logging.getLogger('httpx').setLevel(logging.WARNING)
+    logging.getLogger('httpcore').setLevel(logging.WARNING)
     # Telegram embeds the secret in its API URL: never log httpx request URLs.
     logging.getLogger('httpx').setLevel(logging.WARNING)
     logging.getLogger('httpcore').setLevel(logging.WARNING)

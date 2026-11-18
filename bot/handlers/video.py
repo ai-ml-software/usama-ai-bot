@@ -5,7 +5,7 @@ from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
 
 from ..database import db
-from ..ai_client import ai, VIDEO_MODELS
+from ..free_media import generate_media
 from ..i18n import t
 from ..middleware import protected, user_lang, send_upload_video
 
@@ -15,20 +15,15 @@ logger = logging.getLogger(__name__)
 async def do_video(update: Update, context: ContextTypes.DEFAULT_TYPE, prompt: str):
     user_id = update.effective_user.id
     lang = user_lang(user_id)
-    model = VIDEO_MODELS[0]
+    model = 'auto-free'
 
     await send_upload_video(context, update.effective_chat.id)
     status = await update.message.reply_text(t(lang, "generating_video"))
     start = time.time()
     try:
-        url = await ai.generate_video(prompt, model=model)
+        video_file, model = await generate_media('video', prompt, duration=4)
+        await update.message.reply_video(video=video_file, caption=f"🎥 {prompt[:180]}\n{model}", supports_streaming=True)
         await status.delete()
-        try:
-            await update.message.reply_video(video=url, caption=f"🎥 {prompt[:180]}\n`{model}`",
-                                             parse_mode="Markdown", supports_streaming=True)
-        except Exception:
-            # Fallback: send as document if video upload fails
-            await update.message.reply_document(document=url, caption=f"🎥 {prompt[:180]}")
         db.log_usage(user_id, "video", model, prompt, "ok", int((time.time() - start) * 1000))
     except Exception as e:
         logger.error("video error: %s", e, exc_info=True)

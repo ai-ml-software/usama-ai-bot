@@ -7,6 +7,7 @@ from telegram.ext import CommandHandler, ContextTypes
 from ..config import Config
 from ..database import db
 from ..ai_client import ai
+from ..free_media import generate_media
 from ..i18n import t
 from ..middleware import protected, user_lang, send_upload_photo
 
@@ -24,10 +25,13 @@ async def do_image(update: Update, context: ContextTypes.DEFAULT_TYPE, prompt: s
     status = await update.message.reply_text(t(lang, "generating_image"))
     start = time.time()
     try:
-        url = await ai.generate_image(prompt, model=model, size=size)
+        try:
+            width, height = (int(v) for v in size.split('x'))
+        except (ValueError, AttributeError):
+            width, height = 1024, 1024
+        image_file, model = await generate_media('image', prompt, width=width, height=height)
+        await update.message.reply_photo(photo=image_file, caption=f"🎨 {prompt[:180]}\n{model} · {size}")
         await status.delete()
-        await update.message.reply_photo(photo=url, caption=f"🎨 {prompt[:180]}\n`{model}` · {size}",
-                                         parse_mode="Markdown")
         db.log_usage(user_id, "image", model, prompt, "ok", int((time.time() - start) * 1000))
     except Exception as e:
         logger.error("image error: %s", e, exc_info=True)

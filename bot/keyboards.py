@@ -52,7 +52,7 @@ def text_model_menu() -> InlineKeyboardMarkup:
 def image_model_menu() -> InlineKeyboardMarkup:
     rows = []
     row = []
-    for i, m in enumerate(IMAGE_MODELS):
+    for i, m in enumerate(["auto-free"]):
         row.append(_btn(m, f"set:image_model:{m}"))
         if len(row) == 2:
             rows.append(row)
