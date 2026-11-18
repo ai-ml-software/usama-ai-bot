@@ -27,7 +27,7 @@ class Config:
     RATE_LIMIT_SECONDS: float = float(os.getenv("RATE_LIMIT_SECONDS", "5"))
     MAX_HISTORY_TURNS: int = int(os.getenv("MAX_HISTORY_TURNS", "10"))
     DEFAULT_TEXT_MODEL: str = os.getenv("DEFAULT_TEXT_MODEL", "gpt-5.4-mini")
-    DEFAULT_IMAGE_MODEL: str = os.getenv("DEFAULT_IMAGE_MODEL", "turbo")
+    DEFAULT_IMAGE_MODEL: str = os.getenv("DEFAULT_IMAGE_MODEL", "flux")
     DEFAULT_TTS_VOICE: str = os.getenv("DEFAULT_TTS_VOICE", "Rachel")
 
     # Paths

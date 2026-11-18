@@ -23,6 +23,9 @@ def setup_logging():
     log_file = os.path.join(Config.LOG_DIR, "bot.log")
     handlers.append(RotatingFileHandler(log_file, maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8"))
     logging.basicConfig(level=logging.INFO, format=fmt, handlers=handlers)
+    # Telegram embeds the secret in its API URL: never log httpx request URLs.
+    logging.getLogger('httpx').setLevel(logging.WARNING)
+    logging.getLogger('httpcore').setLevel(logging.WARNING)
 
 
 def main():
@@ -53,7 +56,8 @@ def main():
     logger.info("AI endpoint: %s", Config.AI_BASE_URL)
     logger.info("=" * 60)
 
-    app.run_polling(drop_pending_updates=True, allowed_updates=["message", "callback_query"])
+    # Preserve queued updates across restarts so incoming messages are not discarded.
+    app.run_polling(drop_pending_updates=False, allowed_updates=["message", "callback_query"])
 
 
 if __name__ == "__main__":

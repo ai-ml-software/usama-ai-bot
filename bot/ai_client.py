@@ -125,12 +125,11 @@ class AIClient:
 
     # ─── Video ──────────────────────────────────────────────
     async def generate_video(self, prompt: str, model: str = "seedance") -> str:
-        async def _call():
-            resp = await self.client.images.generate(
-                model=model, prompt=prompt, size="1280x720", n=1,
-            )
-            return resp.data[0].url
-        return await self._retry(_call)
+        raise RuntimeError(
+            "Video generation is temporarily unavailable: the previous implementation "
+            "used the image API with an invalid video alias. Configure a supported "
+            "Pollinations video model and video endpoint before enabling this feature."
+        )
 
 
 ai = AIClient()
