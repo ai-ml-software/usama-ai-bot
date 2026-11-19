@@ -58,7 +58,7 @@ def _spawn():
 
 def supervise():
     """Restart exited worker with bounded exponential backoff."""
-    global _restarts, _last_exit
+    global _restarts, _last_exit, _proc, _error
     delay = 5
     with _lock:
         _spawn()
@@ -73,7 +73,20 @@ def supervise():
                     delay = 5
                 continue
             _last_exit = code
-            log.error('Telegram worker exited: %s; restarting after %ss', code, delay)
+            # USAMA_CONFLICT_FIX_20261118
+            if code == 78:
+                _proc = None
+                _error = ('Telegram conflict or duplicate local poller. '
+                          'Stopped automatic restarts until the duplicate is resolved. '
+                          'Rotate leaked token and restart this Space.')
+                log.critical(_error)
+                return
+            if _restarts >= 10:
+                _proc = None
+                _error = 'Too many Telegram worker crashes; restarts halted pending operator action.'
+                log.critical(_error)
+                return
+            log.error('Telegram worker exited (code %s); restarting after %ss', code, delay)
         time.sleep(delay)
         with _lock:
             _restarts += 1

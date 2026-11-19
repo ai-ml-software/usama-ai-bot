@@ -23,15 +23,10 @@ def setup_logging():
     log_file = os.path.join(Config.LOG_DIR, "bot.log")
     handlers.append(RotatingFileHandler(log_file, maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8"))
     logging.basicConfig(level=logging.INFO, format=fmt, handlers=handlers)
-    # Telegram HTTP URLs embed bot tokens. Never log these URLs.
+    # Suppress Telegram token-bearing URLs in HTTP client logs.
     logging.getLogger('httpx').setLevel(logging.WARNING)
     logging.getLogger('httpcore').setLevel(logging.WARNING)
-    # Telegram embeds the secret in its API URL: never log httpx request URLs.
-    logging.getLogger('httpx').setLevel(logging.WARNING)
-    logging.getLogger('httpcore').setLevel(logging.WARNING)
-    # Telegram embeds the secret in its API URL: never log httpx request URLs.
-    logging.getLogger('httpx').setLevel(logging.WARNING)
-    logging.getLogger('httpcore').setLevel(logging.WARNING)
+
 
 
 def main():
@@ -42,10 +37,34 @@ def main():
         logger.error("TELEGRAM_BOT_TOKEN not set. Run `python setup.py` first.")
         sys.exit(1)
 
+    # USAMA_CONFLICT_FIX_20261118
+    # Advisory lock is host-local. It does NOT coordinate separate servers.
+    import fcntl
+    from telegram.error import Conflict
+    lock_file = open(os.path.join(Config.DATA_DIR, 'telegram_poller.lock'), 'a+b')
+    try:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        logger.error('Another local bot poller already holds the lock; refusing to start.')
+        raise SystemExit(78)
+    conflict_seen = {'value': False}
+
+    async def on_error(update, context):
+        error = context.error
+        if isinstance(error, Conflict):
+            if not conflict_seen['value']:
+                logger.critical('Telegram polling conflict (409): another process uses this token. Stop duplicate pollers or rotate the token.')
+                conflict_seen['value'] = True
+                context.application.stop_running()
+            return
+        # Avoid rendering potentially secret-bearing exception details in logs.
+        logger.error('Telegram handler failed: %s', type(error).__name__)
+
     from telegram.ext import Application
     from bot.handlers import start, chat, image, audio, video, admin
 
     app = Application.builder().token(Config.BOT_TOKEN).build()
+    app.add_error_handler(on_error)
 
     # Register handlers — admin FIRST so broadcast catcher runs before chat text handler
     admin.register(app)
@@ -63,7 +82,18 @@ def main():
     logger.info("=" * 60)
 
     # Preserve queued updates across restarts so incoming messages are not discarded.
-    app.run_polling(drop_pending_updates=False, allowed_updates=["message", "callback_query"])
+    try:
+        app.run_polling(
+            drop_pending_updates=False,
+            allowed_updates=['message', 'callback_query'],
+            bootstrap_retries=0,
+        )
+    finally:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+        lock_file.close()
+    if conflict_seen['value']:
+        raise SystemExit(78)  # Supervisor must NOT restart a 409 conflict.
+
 
 
 if __name__ == "__main__":

@@ -5,7 +5,8 @@ from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
 
 from ..database import db
-from ..free_media import generate_media
+from ..free_media import generate_media, NoVerifiedFreeModel
+# USAMA_CONFLICT_FIX_20261118
 from ..i18n import t
 from ..middleware import protected, user_lang, send_upload_video
 
@@ -25,6 +26,13 @@ async def do_video(update: Update, context: ContextTypes.DEFAULT_TYPE, prompt: s
         await update.message.reply_video(video=video_file, caption=f"🎥 {prompt[:180]}\n{model}", supports_streaming=True)
         await status.delete()
         db.log_usage(user_id, "video", model, prompt, "ok", int((time.time() - start) * 1000))
+    except NoVerifiedFreeModel:
+        db.log_usage(user_id, 'video', model, prompt, 'no_free_model', int((time.time() - start) * 1000))
+        await status.edit_text(
+            'No verified free video model is available on the configured provider right now. '
+            'No paid model was used and no generation charge was requested. '
+            'Try again when a verified free model is published.'
+        )
     except Exception as e:
         logger.error("video error: %s", e, exc_info=True)
         db.log_usage(user_id, "video", model, prompt, "error", int((time.time() - start) * 1000))
