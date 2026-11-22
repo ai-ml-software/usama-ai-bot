@@ -169,7 +169,7 @@ def render_workspace(mode, page, watchlist, interval, auto):
                 continue
             sig = signal(market, headlines, CFG)
             results.append({"symbol": symbol, "price": market["price"], "asof": market["asof"], "source": market["source"], "rsi": float(market["frame"].RSI.iloc[-1]), "stop_reference": market["price"] * (1 - CFG["stop_pct"] / 100), "target_reference": market["price"] * (1 + CFG["take_profit_pct"] / 100), "news_count": len(headlines), "news_error": news_error, **sig})
-        OPS.record_scan(account_id, mode, CFG, results)
+        OPS.record_scan(account_id, mode, {**CFG, "symbols": symbols, "scan_interval_minutes": interval}, results)
         progress.empty()
         st.success(f"Full scan saved | {len(symbols)} instruments | {sum(r['action'] == 'UNAVAILABLE' for r in results)} unavailable.")
     markets = {s: v[0] for s, v in data.items() if v[0] is not None}

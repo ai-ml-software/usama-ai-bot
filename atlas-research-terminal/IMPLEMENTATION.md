@@ -19,7 +19,7 @@ Updated 22 November 2026. This record distinguishes implemented capabilities fro
 | Recovery | Implemented | Checksum and accounting reconciliation; restores into a new paused account |
 | Technical simulation | Implemented | Next-open entries, costs, entry-bar exits, conservative stop/target ambiguity |
 | Paper-only execution | Implemented | No broker client, broker keys or live-order path |
-| GitHub source publication | Pending verification | Prepared source branch; report the actual push result before marking complete |
+| GitHub source publication | Blocked by authentication | Local branch `atlas/research-terminal` prepared; push failed because no authenticated write identity is available |
 | Streamlit Cloud deployment | Pending account session | Requires authenticated Cloud app creation and verification of the returned URL |
 | First market-session observation | User operating task | Cannot be completed in advance or on a closed session |
 | Daily/weekly review | User operating task | Review real observations; export backups and scan evidence |

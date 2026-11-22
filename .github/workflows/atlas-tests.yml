@@ -1,0 +1,25 @@
+name: Atlas paper trading verification
+on:
+  push:
+    branches: [main, atlas/research-terminal]
+    paths: ['atlas-research-terminal/**', '.github/workflows/atlas-tests.yml']
+  pull_request:
+    paths: ['atlas-research-terminal/**', '.github/workflows/atlas-tests.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: atlas-research-terminal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: atlas-research-terminal/requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pip check
+      - run: python -m pytest -q

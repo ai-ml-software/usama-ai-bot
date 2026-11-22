@@ -36,3 +36,5 @@ Use `start.ps1` for the isolated project environment. The initial setup also ins
 ## Source publication access
 
 The connected GitHub account currently reports read-only access (`push: false`, `admin: false`) for `ai-ml-software/usama-ai-bot`. The parent repository's existing main branch hosts a different application. Atlas source is prepared separately on `atlas/research-terminal`; publication must use an account with write access. A locally prepared branch or ZIP is not evidence of a successful remote push or a deployed Streamlit URL.
+
+The normal noninteractive Git push was attempted and failed: no authenticated GitHub username was available. The local branch is ready; no remote branch or public app URL was created.
