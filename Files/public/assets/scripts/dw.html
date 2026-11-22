@@ -1,0 +1,196 @@
+<script>
+let notificationQueue = [];
+let lastNotificationDataId = localStorage.getItem('lastNotificationDataId') || null;
+
+
+function showNotification(data) {
+  const isDeposit = data.action === 'deposited';
+  const emoji = isDeposit ? '💸' : '🚀';
+  
+  const notification = document.createElement('div');
+  notification.className = 'crypto-notification';
+  notification.style.cssText = `
+    position: fixed !important;
+    bottom: ${20 + (notificationQueue.length * 140)}px !important;
+    left: 20px !important;
+    top: auto !important;
+    right: auto !important;
+    transform-origin: bottom left !important;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.92) 0%, rgba(10, 10, 20, 0.95) 100%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    padding: 18px 20px;
+    max-width: 360px;
+    animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 10000;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+      0 24px 48px rgba(0, 0, 0, 0.5),
+      0 0 80px rgba(139, 92, 246, 0.15);
+    overflow: hidden;
+  `;
+
+  notification.innerHTML = `
+    <div class="cyber-grid"></div>
+    <div class="glow-orb"></div>
+    
+    <div style="position: relative; z-index: 2;">
+      <div style="display: flex; gap: 16px; align-items: start;">
+        ${data.icon ? `
+          <div style="
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.15));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2), 0 0 40px rgba(139, 92, 246, 0.1) inset;
+          ">
+            <div style="
+              position: absolute;
+              inset: -20%;
+              background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+              animation: pulse 3s ease-in-out infinite;
+            "></div>
+            <img src="${data.icon}" alt="${data.action_currency}" style="width: 30px; height: 30px; position: relative; z-index: 1; filter: drop-shadow(0 2px 8px rgba(139, 92, 246, 0.4));">
+          </div>
+        ` : ''}
+        <div style="flex: 1; min-width: 0;">
+          <p style="
+            color: #ffffff;
+            font-size: 14.5px;
+            line-height: 1.6;
+            margin: 0 0 12px 0;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+          ">
+            <span style="font-size: 18px; margin-right: 6px; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));">${emoji}</span>
+            ${data.text || `<span style="color: rgba(255, 255, 255, 0.65);">${data.name}</span> <span style="color: rgba(255, 255, 255, 0.4);">from</span> <span style="color: rgba(255, 255, 255, 0.65);">${data.country}</span> <span style="color: rgba(255, 255, 255, 0.4);">just ${data.action}</span> <span style="background: linear-gradient(135deg, #10b981, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; font-size: 15.5px;">$${data.amount} ${data.currency}</span> <span style="color: rgba(255, 255, 255, 0.4);">via</span> <span style="background: linear-gradient(135deg, #f59e0b, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700;">${data.action_currency}</span>`}
+          </p>
+          <div style="
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 12px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.08));
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+          ">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: zap 1.5s ease-in-out infinite; filter: drop-shadow(0 0 4px #10b981);">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            <span style="
+              background: linear-gradient(135deg, #10b981, #059669);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+              font-size: 11px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 1.2px;
+            ">LIVE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="scanning-line"></div>
+    <canvas class="particle-canvas" width="360" height="120"></canvas>
+  `;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes popIn { 0% { transform: scale(0.8) translateY(30px); opacity:0; filter:blur(10px);} 60%{transform:scale(1.05) translateY(-5px);} 100%{transform:scale(1) translateY(0); opacity:1; filter:blur(0);} }
+    @keyframes pulse {0%,100%{opacity:0.3;transform:scale(1);}50%{opacity:0.6;transform:scale(1.2);} }
+    @keyframes zap {0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(0.9) rotate(-5deg);} }
+    @keyframes scanLine {0%{top:-100%;opacity:0;}50%{opacity:0.15;}100%{top:100%;opacity:0;}}
+    @keyframes gridMove {0%{background-position:0 0;}100%{background-position:40px 40px;}}
+    @keyframes orbFloat {0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.15;}50%{transform:translate(-30%,-60%) scale(1.3);opacity:0.25;}}
+    .cyber-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(139,92,246,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(139,92,246,0.03) 1px,transparent 1px);background-size:20px 20px;animation:gridMove 20s linear infinite;opacity:0.4;pointer-events:none;}
+    .glow-orb{position:absolute;width:200px;height:200px;top:50%;left:50%;background:radial-gradient(circle, rgba(139,92,246,0.4) 0%, transparent 70%);filter:blur(40px);animation:orbFloat 8s ease-in-out infinite;pointer-events:none;}
+    .scanning-line{position:absolute;left:0;width:100%;height:100px;background:linear-gradient(180deg,transparent, rgba(139,92,246,0.3), transparent);animation:scanLine 4s ease-in-out infinite;pointer-events:none;filter:blur(2px);}
+    .particle-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0.6;}
+  `;
+
+  if (!document.querySelector('style[data-notification-styles]')) {
+    style.setAttribute('data-notification-styles','true');
+    document.head.appendChild(style);
+  }
+
+  document.body.appendChild(notification);
+  notificationQueue.push(notification);
+
+  // Particle effect
+  const canvas = notification.querySelector('.particle-canvas');
+  const ctx = canvas.getContext('2d');
+  const particles = [];
+  for(let i=0;i<20;i++){
+    particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*0.5,vy:(Math.random()-0.5)*0.5,size:Math.random()*2});
+  }
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='rgba(139,92,246,0.3)';
+    particles.forEach(p=>{
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      ctx.fill();
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>canvas.width)p.vx*=-1;
+      if(p.y<0||p.y>canvas.height)p.vy*=-1;
+    });
+    if(notification.parentElement) requestAnimationFrame(animate);
+  }
+  animate();
+
+  // Remove after 30s
+  setTimeout(()=>{
+    notification.style.transition='all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    notification.style.transform='scale(0.9) translateX(-500px)';
+    notification.style.opacity='0';
+    notification.style.filter='blur(10px)';
+    setTimeout(()=>{
+      notification.remove();
+      notificationQueue = notificationQueue.filter(n=>n!==notification);
+    },500);
+  },30000);
+}
+
+async function fetchNotification() {
+  try {
+    const response = await fetch('https://rescron.com/api/v2/notification', { cache: 'no-cache' });
+    const data = await response.json();
+    const dataString = JSON.stringify(data);
+    // console.log('Fetched notification data:', data);
+
+    if (lastNotificationDataId === null) {
+      // First fetch, store only
+      lastNotificationDataId = data.public_ref;
+      localStorage.setItem('lastNotificationDataId', lastNotificationDataId);
+      //console.log('Initial notification stored');
+      showNotification(data);
+    } else if (data.public_ref !== lastNotificationDataId) {
+      // Show new notification
+      lastNotificationDataId = data.public_ref;
+      localStorage.setItem('lastNotificationDataId', lastNotificationDataId);
+      showNotification(data);
+      //console.log('New notification detected, showing...');
+    } else {
+      //console.log('No change in notification data');
+    }
+  } catch(err) {
+    console.error('Error fetching notification:', err);
+  }
+}
+
+// Fetch immediately
+fetchNotification();
+// Then every 5s
+setInterval(fetchNotification, 5000);
+</script>

@@ -1,0 +1,31 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+html, body, [class*="css"], .stApp {font-family:'DM Sans',sans-serif;}
+.block-container {max-width:1600px;padding:2.3rem 2.7rem 1rem;}
+h1,h2,h3 {font-family:'Manrope',sans-serif!important;letter-spacing:-.04em;}
+h1 {font-size:2.25rem!important;font-weight:700!important;margin-top:.4rem!important;}
+h3 {font-size:1.3rem!important;}
+[data-testid="stSidebar"] {background:#0e1521;border-right:1px solid #1c2839;}
+[data-testid="stSidebar"] .block-container {padding:2rem 1.2rem;}
+.brand {font-size:2rem;letter-spacing:.1em;color:#4ee1ad;margin-bottom:2.2rem;}
+.brand b {color:#edf3fb;letter-spacing:.18em;font-size:1.6rem;}
+.brand span {display:block;font-size:.7rem;letter-spacing:.19em;color:#8190a7;margin-top:.4rem;}
+.eyebrow {font-size:.75rem;letter-spacing:.17em;font-weight:600;color:#8fa1bd;margin:.5rem 0 .8rem;}
+.session {text-align:right;padding-top:.5rem;}
+.session p {margin:.7rem 0 .1rem;font-size:.85rem;color:#c4d0e2;}
+.session small {color:#8291a9;font-size:.8rem;}
+.mode-pill {display:inline-block;border:1px solid #2a4c46;border-radius:5px;color:#73dfba;background:#122b27;padding:.35rem .65rem;font-size:.7rem;letter-spacing:.1em;}
+.stat-card {background:linear-gradient(115deg,#152031,#101825);border:1px solid #233148;border-radius:10px;padding:1.3rem 1.4rem;min-height:143px;}
+.stat-label {font-size:.73rem;letter-spacing:.1em;color:#92a4be;}
+.stat-value {font-family:'Manrope',sans-serif;font-size:1.9rem;font-weight:600;letter-spacing:-.04em;margin:.55rem 0 .35rem;}
+.stat-detail {font-size:.8rem;color:#8f9eb5;}
+.risk-row {display:flex;justify-content:space-between;border-bottom:1px solid #233047;padding:.85rem 0;font-size:.9rem;gap:1rem;}
+.risk-row span {color:#9caec7;}.risk-row b {color:#e7eef8;}
+.sidebar-footer {margin-top:2rem;font-size:.7rem;color:#77cbb1;letter-spacing:.09em;line-height:2;}
+.sidebar-footer span {color:#7e8ba1;letter-spacing:0;}
+[data-testid="stVerticalBlockBorderWrapper"]>div {border-color:#253145!important;border-radius:10px!important;}
+.stButton>button,.stDownloadButton>button {border-radius:6px;font-weight:500;}
+[data-testid="stMetricValue"] {font-family:'Manrope',sans-serif;}
+[data-testid="stCaptionContainer"] {color:#95a4bc;}
+@media(max-width:800px){.block-container{padding:1rem!important;}h1{font-size:1.7rem!important;}.session{text-align:left;}.stat-value{font-size:1.6rem;}.stat-card{padding:1rem;}}
+</style>

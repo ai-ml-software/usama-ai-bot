@@ -1,0 +1,10 @@
+services:
+  atlas:
+    build: .
+    ports:
+      - "127.0.0.1:8501:8501"
+    volumes:
+      - atlas-data:/app/data
+    restart: unless-stopped
+volumes:
+  atlas-data:

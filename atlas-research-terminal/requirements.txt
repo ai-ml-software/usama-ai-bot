@@ -1,0 +1,8 @@
+streamlit==1.51.0
+pandas>=2.2,<3
+numpy>=1.26.4,<3
+plotly>=5.18,<7
+requests>=2.31,<3
+pandas-market-calendars>=4.4,<6
+tzdata>=2024.1
+vaderSentiment==3.3.2
