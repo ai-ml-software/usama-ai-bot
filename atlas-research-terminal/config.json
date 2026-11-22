@@ -1,0 +1,18 @@
+{
+  "symbols": ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META"],
+  "paper_cash": 100000,
+  "max_account_pct_per_position": 8,
+  "risk_pct_per_trade": 1,
+  "stop_pct": 7,
+  "take_profit_pct": 15,
+  "daily_loss_stop_pct": 4,
+  "max_positions": 6,
+  "news_lookback_hours": 24,
+  "rsi_buy_below": 30,
+  "rsi_sell_above": 70,
+  "sentiment_threshold_buy": 0.15,
+  "sentiment_threshold_sell": -0.15,
+  "slippage_bps": 5,
+  "fee_per_order": 1,
+  "max_quote_age_minutes": 15
+}
