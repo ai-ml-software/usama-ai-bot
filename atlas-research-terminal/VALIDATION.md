@@ -12,6 +12,6 @@
 
 ## Verification limits
 
-Public Streamlit deployment has not been verified. The connected GitHub account reports read-only access to the parent remote. A noninteractive Git push failed because no authenticated write identity was available. Publishing and authenticated Streamlit app creation remain external access requirements. Docker is provided as configuration and was not built because Docker is not available here. Future trading sessions, ongoing weekly reviews, investment outcomes and a user's personal acknowledgements cannot be checked off in advance.
+Source publication to the parent GitHub remote succeeded using authenticated Git, including both main and the Atlas source branch. Public Streamlit deployment has not been verified; authenticated Streamlit app creation remains an external account requirement. Docker is provided as configuration and was not built because Docker is not available here. Future trading sessions, ongoing weekly reviews, investment outcomes and a user's personal acknowledgements cannot be checked off in advance.
 
 Use the project virtual environment for execution. The earlier initial setup touched shared Python packages; that shared environment is not the verified runtime. The included launcher explicitly uses `.venv`.

@@ -7,7 +7,7 @@ The app is implemented and locally deployed at http://localhost:8501. Community 
 | Setting | Value |
 | --- | --- |
 | Repository | `ai-ml-software/usama-ai-bot` |
-| Branch | `atlas/research-terminal` once source publication is verified |
+| Branch | `main` or `atlas/research-terminal` |
 | Main file | `atlas-research-terminal/app.py` |
 | Python | `3.11` |
 | Dependencies | `atlas-research-terminal/requirements.txt` |
@@ -33,8 +33,8 @@ Use `start.ps1` for the isolated project environment. The initial setup also ins
 
 
 
-## Source publication access
+## Source publication
 
-The connected GitHub account currently reports read-only access (`push: false`, `admin: false`) for `ai-ml-software/usama-ai-bot`. The parent repository's existing main branch hosts a different application. Atlas source is prepared separately on `atlas/research-terminal`; publication must use an account with write access. A locally prepared branch or ZIP is not evidence of a successful remote push or a deployed Streamlit URL.
+Source code is published to [ai-ml-software/usama-ai-bot](https://github.com/ai-ml-software/usama-ai-bot) on `main` and `atlas/research-terminal`. Git authentication now uses Windows Git Credential Manager with the repository owner account. Credentials remain in the operating system credential store and are not included in source control.
 
-The normal noninteractive Git push was attempted and failed: no authenticated GitHub username was available. The local branch is ready; no remote branch or public app URL was created.
+Streamlit Cloud app creation is still pending an authenticated Cloud session. Publishing source to GitHub does not by itself create a public Streamlit deployment URL.
